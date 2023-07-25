@@ -68,15 +68,18 @@ install_dependencies() {
 # Establish Iptables rules
 establish_firewall () {
     systemctl enable firewalld --now
-    firewall-cmd --zone=public --permanent --add-port=6443/tcp
-    firewall-cmd --zone=public --permanent --add-port=30000-32767/tcp
-    firewall-cmd --zone=public --permanent --add-port=2379-2380/tcp
-    firewall-cmd --zone=public --add-masquerade --permanent
-    firewall-cmd --zone=public --add-port=80/tcp --permanent
-    firewall-cmd --zone=public --add-port=443/tcp --permanent
-    firewall-cmd --zone=public --add-port=10250/tcp --permanent
-    firewall-cmd --zone=public --add-port=10251/tcp --permanent
-    firewall-cmd --permanent --zone=trusted --add-source=10.42.0.0/16
+    # Mandatory settings
+    firewall-cmd --permanent --zone=trusted --add-source=10.42.0.0/16 
+    firewall-cmd --permanent --zone=trusted --add-source=169.254.169.1
+    firewall-cmd --reload
+    # Optional settings
+    firewall-cmd --permanent --zone=public --add-port=80/tcp
+    firewall-cmd --permanent --zone=public --add-port=443/tcp
+    firewall-cmd --permanent --zone=public --add-port=5353/udp
+    firewall-cmd --permanent --zone=public --add-port=30000-32767/tcp
+    firewall-cmd --permanent --zone=public --add-port=30000-32767/udp
+    firewall-cmd --permanent --zone=public --add-port=6443/tcp
+    firewall-cmd --permanent --zone=public --add-service=mdns
     firewall-cmd --reload
 }
 
@@ -189,7 +192,7 @@ then
 
     until systemctl --no-pager status microshift.service && test -f /var/lib/microshift/resources/kubeadmin/kubeconfig
     do
-        journalctl -u microshift -f
+        journalctl -u microshift
         sleep 30s
     done
     prepare_kubeconfig
