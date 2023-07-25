@@ -14,14 +14,10 @@ jobs:
       - uses: actions/checkout@v3
         with:
           repository: tthvo/microshift_ci
-      - name: Run install script
-        run: |
-          sudo -i
-          bash .github/install.sh
+      - name: Build MicroShift for AMD64
+        run: sudo -i && bash .github/build_microshift.sh
       - name: Enable MicroShift
-        run: | 
-          sudo systemctl start microshift
-          export KUBECONFIG=/var/lib/microshift/resources/kubeadmin/kubeconfig
+        run: sudo -i && bash .github/install_microshift.sh
       - name: Install oc
         uses: redhat-actions/openshift-tools-installer@v1
         with:

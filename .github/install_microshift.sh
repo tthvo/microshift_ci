@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
+# Require root shell
 set -x -e -o pipefail
-
-# Get latest version
-VERSION=${VERSION:-"4.13.0-rc-8"}
 
 # Function to get Linux distribution
 get_distro() {
@@ -61,7 +59,7 @@ pre-check-installation(){
 
 # Install dependencies
 install_dependencies() {
-    sudo apt-get install -y \
+    apt-get install -y \
             policycoreutils-python-utils \
             conntrack \
             firewalld 
@@ -69,17 +67,17 @@ install_dependencies() {
 
 # Establish Iptables rules
 establish_firewall () {
-    sudo systemctl enable firewalld --now
-    sudo firewall-cmd --zone=public --permanent --add-port=6443/tcp
-    sudo firewall-cmd --zone=public --permanent --add-port=30000-32767/tcp
-    sudo firewall-cmd --zone=public --permanent --add-port=2379-2380/tcp
-    sudo firewall-cmd --zone=public --add-masquerade --permanent
-    sudo firewall-cmd --zone=public --add-port=80/tcp --permanent
-    sudo firewall-cmd --zone=public --add-port=443/tcp --permanent
-    sudo firewall-cmd --zone=public --add-port=10250/tcp --permanent
-    sudo firewall-cmd --zone=public --add-port=10251/tcp --permanent
-    sudo firewall-cmd --permanent --zone=trusted --add-source=10.42.0.0/16
-    sudo firewall-cmd --reload
+    systemctl enable firewalld --now
+    firewall-cmd --zone=public --permanent --add-port=6443/tcp
+    firewall-cmd --zone=public --permanent --add-port=30000-32767/tcp
+    firewall-cmd --zone=public --permanent --add-port=2379-2380/tcp
+    firewall-cmd --zone=public --add-masquerade --permanent
+    firewall-cmd --zone=public --add-port=80/tcp --permanent
+    firewall-cmd --zone=public --add-port=443/tcp --permanent
+    firewall-cmd --zone=public --add-port=10250/tcp --permanent
+    firewall-cmd --zone=public --add-port=10251/tcp --permanent
+    firewall-cmd --permanent --zone=trusted --add-source=10.42.0.0/16
+    firewall-cmd --reload
 }
 
 
@@ -89,22 +87,22 @@ install_crio() {
 
     OS=xUbuntu_$OS_VERSION
     KEYRINGS_DIR=/usr/share/keyrings
-    echo "deb [signed-by=$KEYRINGS_DIR/libcontainers-archive-keyring.gpg] https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ /" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list > /dev/null
-    echo "deb [signed-by=$KEYRINGS_DIR/libcontainers-crio-archive-keyring.gpg] http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$CRIOVERSION/$OS/ /" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:$CRIOVERSION.list > /dev/null
+    echo "deb [signed-by=$KEYRINGS_DIR/libcontainers-archive-keyring.gpg] https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ /" | tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list > /dev/null
+    echo "deb [signed-by=$KEYRINGS_DIR/libcontainers-crio-archive-keyring.gpg] http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$CRIOVERSION/$OS/ /" | tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:$CRIOVERSION.list > /dev/null
 
-    sudo mkdir -p $KEYRINGS_DIR
-    curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | sudo gpg --dearmor -o $KEYRINGS_DIR/libcontainers-archive-keyring.gpg
-    curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$CRIOVERSION/$OS/Release.key | sudo gpg --dearmor -o $KEYRINGS_DIR/libcontainers-crio-archive-keyring.gpg
+    mkdir -p $KEYRINGS_DIR
+    curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | gpg --dearmor -o $KEYRINGS_DIR/libcontainers-archive-keyring.gpg
+    curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$CRIOVERSION/$OS/Release.key | gpg --dearmor -o $KEYRINGS_DIR/libcontainers-crio-archive-keyring.gpg
 
-    sudo apt-get update -y
+    apt-get update -y
     # Vagrant Ubuntu VMs don't provide containernetworking-plugins by default
-    sudo apt-get install -y cri-o cri-o-runc cri-tools containernetworking-plugins
+    apt-get install -y cri-o cri-o-runc cri-tools containernetworking-plugins
 }
 
 
 # CRI-O config to match MicroShift networking values
 crio_conf() {
-    sudo sh -c 'cat << EOF > /etc/cni/net.d/100-crio-bridge.conf
+    sh -c 'cat << EOF > /etc/cni/net.d/100-crio-bridge.conf
 {
     "cniVersion": "0.4.0",
     "name": "crio",
@@ -126,20 +124,9 @@ crio_conf() {
 EOF'
 }
 
-# Start CRI-O
-verify_crio() {
-    sudo systemctl enable crio --now
-}
-
 # Download and install microshift
-get_microshift() {
-    curl -LO https://github.com/redhat-et/microshift/releases/download/$VERSION/microshift-linux-$ARCH
-    curl -LO https://github.com/redhat-et/microshift/releases/download/$VERSION/release.sha256
-
-    sudo chmod +x microshift-linux-$ARCH
-    sudo mv microshift-linux-$ARCH /usr/local/bin/microshift
-
-    cat << EOF | sudo tee /usr/lib/systemd/system/microshift.service
+microshift_conf() {
+    cat << EOF | tee /usr/lib/systemd/system/microshift.service
 [Unit]
 Description=MicroShift
 After=crio.service
@@ -153,7 +140,6 @@ User=root
 [Install]
 WantedBy=multi-user.target
 EOF
-    sudo systemctl enable microshift.service --now
 }
 
 # Locate kubeadmin configuration to default kubeconfig location
@@ -162,7 +148,7 @@ prepare_kubeconfig() {
     if [ -f $HOME/.kube/config ]; then
         mv $HOME/.kube/config $HOME/.kube/config.orig
     fi
-    sudo KUBECONFIG=/var/lib/microshift/resources/kubeadmin/kubeconfig:$HOME/.kube/config.orig /usr/local/bin/kubectl config view --flatten > $HOME/.kube/config
+    KUBECONFIG=/var/lib/microshift/resources/kubeadmin/kubeconfig:$HOME/.kube/config.orig /usr/local/bin/kubectl config view --flatten > $HOME/.kube/config
 }
 
 # validation checks for deployment 
@@ -193,13 +179,21 @@ install_dependencies
 install_crio
 crio_conf
 establish_firewall
+
 verify_crio
+systemctl enable crio --now
 
-get_microshift
+if [ -f /usr/local/bin/microshift ];
+then
+    microshift_conf
+    systemctl enable microshift.service --now
 
-until systemctl --no-pager status microshift.service && sudo test -f /var/lib/microshift/resources/kubeadmin/kubeconfig
-do
-    journalctl -u microshift -f
-    sleep 30s
-done
-prepare_kubeconfig
+    until systemctl --no-pager status microshift.service && test -f /var/lib/microshift/resources/kubeadmin/kubeconfig
+    do
+        journalctl -u microshift -f
+        sleep 30s
+    done
+    prepare_kubeconfig
+else
+    echo "No MicroShift binary found" && exit 1
+fi
