@@ -128,8 +128,7 @@ EOF'
 
 # Start CRI-O
 verify_crio() {
-    sudo systemctl enable crio
-    sudo systemctl restart crio
+    sudo systemctl enable crio --now
 }
 
 # Download and install microshift
@@ -154,10 +153,6 @@ User=root
 [Install]
 WantedBy=multi-user.target
 EOF
-
-    if [ "$DISTRO" = "ubuntu" ] && [ "$OS_VERSION" = "18.04" ]; then
-        sudo sed -i 's|^ExecStart=microshift|ExecStart=/usr/local/bin/microshift|' /usr/lib/systemd/system/microshift.service
-    fi
     sudo systemctl enable microshift.service --now
 }
 
@@ -167,7 +162,7 @@ prepare_kubeconfig() {
     if [ -f $HOME/.kube/config ]; then
         mv $HOME/.kube/config $HOME/.kube/config.orig
     fi
-    sudo KUBECONFIG=/var/lib/microshift/resources/kubeadmin/kubeconfig:$HOME/.kube/config.orig  /usr/local/bin/kubectl config view --flatten > $HOME/.kube/config
+    sudo KUBECONFIG=/var/lib/microshift/resources/kubeadmin/kubeconfig:$HOME/.kube/config.orig /usr/local/bin/kubectl config view --flatten > $HOME/.kube/config
 }
 
 # validation checks for deployment 
@@ -195,15 +190,16 @@ get_os_version
 pre-check-installation
 validation_check
 install_dependencies
-establish_firewall
 install_crio
 crio_conf
+establish_firewall
 verify_crio
 
 get_microshift
 
 until sudo test -f /var/lib/microshift/resources/kubeadmin/kubeconfig
 do
-     sleep 2
+    ls -la /var/lib/microshift/resources/kubeadmin/
+    sleep 10
 done
 prepare_kubeconfig
