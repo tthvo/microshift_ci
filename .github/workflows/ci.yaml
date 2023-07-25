@@ -15,7 +15,9 @@ jobs:
         with:
           repository: tthvo/microshift_ci
       - name: Run install script
-        run: sudo bash .github/install.sh
+        run: |
+          sudo -i
+          bash .github/install.sh
       - name: Enable MicroShift
         run: | 
           sudo systemctl start microshift
