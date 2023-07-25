@@ -199,7 +199,8 @@ get_microshift
 
 until sudo test -f /var/lib/microshift/resources/kubeadmin/kubeconfig
 do
-    ls -la /var/lib/microshift/resources/kubeadmin/
+    systemctl status microshift.service
+    journal -xe
     sleep 10
 done
 prepare_kubeconfig
