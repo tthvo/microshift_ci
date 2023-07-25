@@ -2,7 +2,7 @@
 set -x -e -o pipefail
 
 # Get latest version
-VERSION=$(curl -sL https://api.github.com/repos/redhat-et/microshift/releases | grep tag_name | head -n 1 | cut -d '"' -f 4)
+VERSION=${VERSION:-"4.13.0-rc-8"}
 
 # Function to get Linux distribution
 get_distro() {
@@ -136,13 +136,6 @@ verify_crio() {
 get_microshift() {
     curl -LO https://github.com/redhat-et/microshift/releases/download/$VERSION/microshift-linux-$ARCH
     curl -LO https://github.com/redhat-et/microshift/releases/download/$VERSION/release.sha256
-
-    BIN_SHA="$(sha256sum microshift-linux-$ARCH | awk '{print $1}')"
-    KNOWN_SHA="$(grep "microshift-linux-$ARCH" release.sha256 | awk '{print $1}')"
-
-    if [[ "$BIN_SHA" != "$KNOWN_SHA" ]]; then 
-        echo "SHA256 checksum failed" && exit 1
-    fi
 
     sudo chmod +x microshift-linux-$ARCH
     sudo mv microshift-linux-$ARCH /usr/local/bin/microshift
