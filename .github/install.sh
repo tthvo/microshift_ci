@@ -199,6 +199,7 @@ get_microshift
 
 until systemctl --no-pager status microshift.service && sudo test -f /var/lib/microshift/resources/kubeadmin/kubeconfig
 do
-    sleep 10
+    journalctl -u microshift -f
+    sleep 30s
 done
 prepare_kubeconfig
