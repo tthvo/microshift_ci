@@ -176,11 +176,10 @@ get_os_version
 pre-check-installation
 validation_check
 install_dependencies
-install_crio
-crio_conf
 establish_firewall
 
-verify_crio
+install_crio
+crio_conf
 systemctl enable crio --now
 
 if [ -f /usr/local/bin/microshift ];
