@@ -10,11 +10,12 @@ jobs:
       - name: Set hostname
         run: |
           # The host needs a fqdn domain for MicroShift to work well
-          sudo hostnamectl set-hostname cluster.cryostat.io 
+          sudo hostnamectl set-hostname cluster.cryostat.io
+      - uses: actions/checkout@v3
+        with:
+          repository: tthvo/microshift_ci
       - name: Run install script
-        run: |
-          git clone https://github.com/thinkahead/microshift.git
-          bash ./microshift/install.sh
+        run: sudo bash .github/install.sh
       - name: Enable MicroShift
         run: | 
           sudo systemctl start microshift
