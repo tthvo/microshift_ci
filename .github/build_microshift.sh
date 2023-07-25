@@ -22,7 +22,7 @@ build_microshift() {
     curl -Lo "$VERSION.tar"  $artifact_url && tar -xf "$VERSION.tar"
     cd $(ls | grep microshift)
     make clean
-    make
+    GO_REQUIRED_MIN_VERSION="" make
     sudo mv microshift /usr/local/bin/microshift
 }
 
