@@ -197,9 +197,8 @@ verify_crio
 
 get_microshift
 
-until sudo test -f /var/lib/microshift/resources/kubeadmin/kubeconfig
+until systemctl --no-pager status microshift.service && sudo test -f /var/lib/microshift/resources/kubeadmin/kubeconfig
 do
-    systemctl status microshift.service
     sleep 10
 done
 prepare_kubeconfig
