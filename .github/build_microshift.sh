@@ -23,7 +23,7 @@ build_microshift() {
     cd $(ls | grep microshift)
     make clean
     GO_REQUIRED_MIN_VERSION="" make
-    sudo mv microshift /usr/local/bin/microshift
+    sudo mv ./_output/bin/microshift /usr/local/bin/microshift
 }
 
 check_release_available
