@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  launch-microshift:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set hostname
+        run: |
+          # The host needs a fqdn domain for MicroShift to work well
+          hostnamectl set-hostname cluster.cryostat.io 
+      - name: Run install script
+        run: |
+          git clone https://github.com/thinkahead/microshift.git
+          bash ./microshift/install.sh
+      - name: Enable MicroShift
+        run: | 
+          systemctl start microshift
+          export KUBECONFIG=/var/lib/microshift/resources/kubeadmin/kubeconfig
+      - name: Install oc
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          source: "mirror"
+          oc: "^4"
+      - name: Check if microshift is running
+        run: |
+          oc cluster-info
+          oc whoami
+
