@@ -18,7 +18,7 @@ jobs:
         with:
           go-version: '1.15.2'
       - name: Build MicroShift for AMD64
-        run: sudo bash .github/build_microshift.sh
+        run: bash .github/build_microshift.sh
       - name: Enable MicroShift
         run: sudo bash .github/install_microshift.sh
       - name: Install oc
