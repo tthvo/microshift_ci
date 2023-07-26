@@ -17,7 +17,7 @@ jobs:
       - name: Build MicroShift for AMD64
         run: bash .github/build_microshift.sh
       - name: Enable MicroShift
-        run: sudo bash .github/install_microshift.sh
+        run: bash .github/install_microshift.sh
       - name: Install oc
         uses: redhat-actions/openshift-tools-installer@v1
         with:
