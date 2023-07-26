@@ -28,4 +28,9 @@ build_microshift() {
 
 check_release_available
 install_build_deps
+
+TMP_DIR=$(mktemp -d)
+pushd $TMP_DIR
 build_microshift
+popd
+rm -rf $TMP_DIR

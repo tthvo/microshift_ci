@@ -2,16 +2,6 @@
 # Require root shell
 set -x -e -o pipefail
 
-# Function to get Linux distribution
-get_distro() {
-    DISTRO=$(egrep '^(ID)=' /etc/os-release| sed 's/"//g' | cut -f2 -d"=")
-    if [[ $DISTRO != @(rhel|fedora|centos|ubuntu) ]]
-    then
-      echo "This Linux distro is not supported by the install script"
-      exit 1
-    fi
-}
-
 # Function to get system architecture
 get_arch() {
     ARCH=$(uname -m | sed "s/x86_64/amd64/" | sed "s/aarch64/arm64/")
@@ -151,30 +141,10 @@ prepare_kubeconfig() {
     cat /var/lib/microshift/resources/kubeadmin/kubeconfig > $HOME/.kube/config
 }
 
-# validation checks for deployment 
-validation_check(){
-    echo $HOSTNAME | grep -P '(?=^.{1,254}$)(^(?>(?!\d+\.)[a-zA-Z0-9_\-]{1,63}\.?)+(?:[a-zA-Z]{2,})$)' && echo "Correct"
-    if [ $? != 0 ];
-    then
-        echo "======================================================================"
-        echo "!!! WARNING !!!"
-        echo "The hostname $HOSTNAME does not follow FQDN, which might cause problems while operating the cluster."
-        echo "See: https://github.com/redhat-et/microshift/issues/176"
-        echo
-        echo "If you face a problem or want to avoid them, please update your hostname and try again."
-        echo "Example: 'sudo hostnamectl set-hostname $HOSTNAME.example.com'"
-        echo "======================================================================"
-    else
-        echo "$HOSTNAME is a valid machine name continuing installation"
-    fi
-}
-
 # Script execution
-get_distro
 get_arch
 get_os_version
 pre-check-installation
-validation_check
 install_dependencies
 establish_firewall
 
