@@ -18,20 +18,18 @@ check_release_available() {
 }
 
 build_microshift() {
+    TMP_DIR=$(mktemp -d)
+    pushd $TMP_DIR
     local artifact_url=$(curl -Ls https://api.github.com/repos/redhat-et/microshift/releases | jq -r .[].tarball_url | grep $VERSION)
     curl -Lo "$VERSION.tar"  $artifact_url && tar -xf "$VERSION.tar"
     cd $(ls | grep microshift)
-    go mod tidy
-    make clean
     GO_REQUIRED_MIN_VERSION="" make
     sudo mv ./_output/bin/microshift /usr/local/bin/microshift
+    popd
+    rm -rf $TMP_DIR
 }
 
 check_release_available
 install_build_deps
 
-TMP_DIR=$(mktemp -d)
-pushd $TMP_DIR
 build_microshift
-popd
-rm -rf $TMP_DIR
