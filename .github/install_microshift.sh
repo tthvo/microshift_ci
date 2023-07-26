@@ -148,10 +148,7 @@ EOF
 # Locate kubeadmin configuration to default kubeconfig location
 prepare_kubeconfig() {
     mkdir -p $HOME/.kube
-    if [ -f $HOME/.kube/config ]; then
-        mv $HOME/.kube/config $HOME/.kube/config.orig
-    fi
-    KUBECONFIG=/var/lib/microshift/resources/kubeadmin/kubeconfig:$HOME/.kube/config.orig /usr/local/bin/kubectl config view --flatten > $HOME/.kube/config
+    cat /var/lib/microshift/resources/kubeadmin/kubeconfig > $HOME/.kube/config
 }
 
 # validation checks for deployment 

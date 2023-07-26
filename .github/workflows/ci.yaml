@@ -28,6 +28,8 @@ jobs:
           oc: "^4"
       - name: Check if microshift is running
         run: |
+          oc config view
           oc cluster-info
           oc whoami
+          oc get pods -A
 
